@@ -94,8 +94,8 @@ The window opens at 1400 × 900 px.
 Open **`pcd_check_json.py`** and look for these constants near the top:
 
 ```python
-BASE_POINT_SIZE      = 0.05   # grey cloud
-HIGHLIGHT_POINT_SIZE = 0.20   # points inside bbox
+BASE_POINT_SIZE      = 0.03   # grey cloud
+HIGHLIGHT_POINT_SIZE = 0.12   # points inside bbox
 
 _PALETTE = {           # fixed colours
     "human1": pg.mkColor('#ff595e'),
@@ -103,7 +103,7 @@ _PALETTE = {           # fixed colours
     "human3": pg.mkColor('#8ac926'),
     "human4": pg.mkColor('#1982c4'),
     "human5": pg.mkColor('#6a4c93'),
-    "other" : pg.mkColor('#aaaaaa')   # fallback
+    "other" : pg.mkColor('#ecb1f8')   # fallback
 }
 ```
 
