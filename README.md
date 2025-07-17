@@ -77,8 +77,9 @@ The window opens at 1400 × 900 px.
 
 | Action | How |
 |--------|-----|
-| Next / previous record | Toolbar arrows ⟵ ⟶ |
-| Rotate scene | “Scene azimuth °” slider |
+| Next / previous record | Toolbar button or keyboard arrows ⟵ ⟶ |
+| Rotate 3D scene | Hold and drag mouse in 3D view|
+| Zoom in and out | Mouse|
 | Select label | Combo‑box (drop‑down) |
 | Rotate selected bbox | “Rotate bbox °” slider |
 | Move / resize bbox | Drag handles in any 2‑D view |
