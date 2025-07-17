@@ -5,6 +5,7 @@
 """
 import sys, os, json, difflib, math, numpy as np
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import QKeySequence  
 import pyqtgraph as pg
 
 # -------------------- back‑end deps -----------------------------------------
@@ -78,16 +79,20 @@ class Editor(QtWidgets.QMainWindow):
 
         # toolbar
         tb = QtWidgets.QToolBar(); self.addToolBar(tb)
-        tb.addAction("⟵", lambda: self._goto(self.i-1))
-        tb.addAction("⟶", lambda: self._goto(self.i+1))
+        tb.addAction("Previous", lambda: self._goto(self.i-1))
+        tb.addAction("Next", lambda: self._goto(self.i+1))
         tb.addSeparator(); tb.addAction("＋ human", self._add_label)
-        tb.addAction("🗑 delete", self._delete_label)  
+        tb.addAction("🗑 Delete", self._delete_label)  
         tb.addAction("Rename", lambda: self._rename_label(auto_prompt=True))
         tb.addSeparator()
         tb.addAction("Save", self._save)
 
         lay.setRowStretch(0, 3); lay.setRowStretch(1, 1)
         for c in range(3): lay.setColumnStretch(c, 1)
+
+        # Keyboard control
+        QtWidgets.QShortcut(QKeySequence(QtCore.Qt.Key_Left),  self, activated=lambda: self._goto(self.i-1))
+        QtWidgets.QShortcut(QKeySequence(QtCore.Qt.Key_Right), self, activated=lambda: self._goto(self.i+1))
 
     def _slider(self, parent_layout, label, cb):
         parent_layout.addWidget(QtWidgets.QLabel(label))
