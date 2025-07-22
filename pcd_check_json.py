@@ -16,6 +16,56 @@ except ImportError as e:
     QtWidgets.QMessageBox.critical(None, "Missing dependency", str(e))
     sys.exit(1)
 
+# -----sync names------------
+def sync_json_pcd_filenames(json_path: str, pcd_dir: str, cutoff: float = 0.6):
+    """
+    If JSON‑entry count == .pcd count AND every JSON 'File' fuzzy‑matches
+    a .pcd basename above `cutoff`, then:
+      • rewrite rec['File'] = '<matched>.pcd'
+      • sort all records by that timestamped filename
+      • overwrite the original JSON in place
+    Otherwise, show a warning and leave the JSON untouched.
+    """
+    data = json.load(open(json_path))
+    pcd_files = [f for f in os.listdir(pcd_dir) if f.lower().endswith('.pcd')]
+
+    if len(data) != len(pcd_files):
+        QtWidgets.QMessageBox.warning(
+            None, "Count mismatch",
+            f"JSON has {len(data)} entries, but found {len(pcd_files)} .pcd files."
+        )
+        return
+
+    basenames = [os.path.splitext(f)[0] for f in pcd_files]
+    new_files = []
+    for rec in data:
+        orig = rec.get('File','')
+        base = os.path.splitext(orig)[0]
+        m = difflib.get_close_matches(base, basenames, n=1, cutoff=cutoff)
+        if not m:
+            QtWidgets.QMessageBox.warning(
+                None, "No fuzzy match",
+                f"Could not match “{orig}” to any .pcd in\n{pcd_dir}"
+            )
+            return
+        new_files.append(m[0] + '.pcd')
+
+    # All matched → rewrite and sort by timestamped basename
+    for rec, new_fn in zip(data, new_files):
+        rec['File'] = new_fn
+
+    # since filenames are timestamps, lexicographic sort == chronological
+    data.sort(key=lambda r: os.path.splitext(r['File'])[0])
+
+    # overwrite original JSON
+    with open(json_path, 'w') as fp:
+        json.dump(data, fp, indent=2)
+
+    QtWidgets.QMessageBox.information(
+        None, "Sync complete",
+        f"Filenames synced and JSON overwritten:\n{json_path}"
+    )
+
 # -------------------- helpers / constants -----------------------------------
 class GLView(gl.GLViewWidget):
     def __init__(self):
@@ -79,10 +129,10 @@ class Editor(QtWidgets.QMainWindow):
 
         # toolbar
         tb = QtWidgets.QToolBar(); self.addToolBar(tb)
-        tb.addAction("Previous", lambda: self._goto(self.i-1))
-        tb.addAction("Next", lambda: self._goto(self.i+1))
+        tb.addAction("⟵", lambda: self._goto(self.i-1))
+        tb.addAction("⟶", lambda: self._goto(self.i+1))
         tb.addSeparator(); tb.addAction("＋ human", self._add_label)
-        tb.addAction("🗑 Delete", self._delete_label)  
+        tb.addAction("🗑 delete", self._delete_label)  
         tb.addAction("Rename", lambda: self._rename_label(auto_prompt=True))
         tb.addSeparator()
         tb.addAction("Save", self._save)
@@ -532,5 +582,9 @@ if __name__=='__main__':
     pdir=QtWidgets.QFileDialog.getExistingDirectory(None,"Select PCD folder")
     jpath,_=QtWidgets.QFileDialog.getOpenFileName(None,"Select JSON file",filter="JSON files (*.json)")
     if not pdir or not jpath: sys.exit(0)
+
+    # overwrite the JSON in place (and sort by timestamp)
+    sync_json_pcd_filenames(jpath, pdir)
+
     w=Editor(jpath,pdir); w.resize(1400,900); w.show()
     sys.exit(app.exec_())
